@@ -20,11 +20,11 @@ typedef struct _image {
 } Image;
 
 Image readImg (Image img) {
-  for (unsigned int i = 0; i < img.height; ++i) {
-      for (unsigned int j = 0; j < img.width; ++j) {
-          scanf("%hu %hu %hu", &img.pixel[i][j][0],
-                               &img.pixel[i][j][1],
-                               &img.pixel[i][j][2]);
+  for (unsigned int cont = 0; cont < img.height; ++cont) {
+      for (unsigned int contAux = 0; contAux < img.width; ++contAux) {
+          scanf("%hu %hu %hu", &img.pixel[cont][contAux][0],
+                               &img.pixel[cont][contAux][1],
+                               &img.pixel[cont][contAux][2]);
     }
   }
   return img;
@@ -69,7 +69,7 @@ Image escala_de_cinza(Image img) {
     return img;
 }
 
-void blur(Image img) { //MUITOS PARAMETROS
+Image blur(Image img) { //MUITOS PARAMETROS
     int tamanho = 0;
     scanf("%d", &tamanho);
     Image pixel;
@@ -96,58 +96,59 @@ void blur(Image img) { //MUITOS PARAMETROS
             img.pixel[cont][contAux][2] = media.b;
         }
     }
+    return img;
 }
 
 Image rotacionar90direita(Image img) {
-    int n_rotacao = 0;
-    scanf("%d", &n_rotacao);
-    n_rotacao %= 4;
     Image rotacionada;
-    for (int contRotacao = 0; contRotacao < n_rotacao; ++contRotacao) {
-      rotacionada.width = img.height;
-      rotacionada.height = img.width;
-      for (unsigned int cont = 0, y = 0; cont < rotacionada.height; ++cont, ++y) {  // y?? x?? olhar codigo antigo
-          for (unsigned int contAux = rotacionada.width - 1, x = 0; contAux >= 0; --contAux, ++x) {
-              rotacionada.pixel[cont][contAux][0] = img.pixel[x][y][0];
-              rotacionada.pixel[cont][contAux][1] = img.pixel[x][y][1];
-              rotacionada.pixel[cont][contAux][2] = img.pixel[x][y][2];
-          }
+
+    rotacionada.width = img.height;
+    rotacionada.height = img.width;
+    int quantas_vezes = 0;
+    scanf("%d", &quantas_vezes);
+    quantas_vezes %= 4;
+    for (int j = 0; j < quantas_vezes; ++j) {
+      for (unsigned int i = 0, y = 0; i < rotacionada.height; ++i, ++y) {
+          for (int j = rotacionada.width - 1, x = 0; j >= 0; --j, ++x) {
+              rotacionada.pixel[i][j][0] = img.pixel[x][y][0];
+              rotacionada.pixel[i][j][1] = img.pixel[x][y][1];
+              rotacionada.pixel[i][j][2] = img.pixel[x][y][2];
+        }
       }
     }
     return rotacionada;
 }
 
 Image espelhamento(Image img) {
-  int horizontal;
+  int horizontal = 0;
   scanf("%d", &horizontal);
-  int widthAux = img.width, heightAux = img.height;
-  if (horizontal == 1) widthAux /= 2;
-  else heightAux /= 2;
+  int width = img.width, height = img.height;
+  if (horizontal == 1) width /= 2;
+  else height /= 2;
+  for (int cont = 0; cont < height; ++cont) {
+      for (int contAux = 0; contAux < width; ++contAux) {
+          int referenceCont = cont, referenceContAux = contAux;
 
-  for (int cont = 0; cont < img.height; ++cont) {
-      for (int contAux = 0; contAux < img.width; ++contAux) {
-          int invertHeight = cont, invertWidth = contAux;
+          if (horizontal == 1) referenceContAux = img.width - 1 - contAux;
+          else referenceCont = img.height - 1 - cont;
 
-          if (horizontal == 1) invertWidth = img.width - 1 - contAux;
-          else invertHeight = img.height - 1 - cont;
+          Pixel pixelAux;
+          pixelAux.r = img.pixel[cont][contAux][0];
+          pixelAux.g = img.pixel[cont][contAux][1];
+          pixelAux.b = img.pixel[cont][contAux][2];
 
-          Pixel aux1;
-          aux1.r = img.pixel[cont][contAux][0];
-          aux1.g = img.pixel[cont][contAux][1];
-          aux1.b = img.pixel[cont][contAux][2];
+          img.pixel[cont][contAux][0] = img.pixel[referenceCont][referenceContAux][0];
+          img.pixel[cont][contAux][1] = img.pixel[referenceCont][referenceContAux][1];
+          img.pixel[cont][contAux][2] = img.pixel[referenceCont][referenceContAux][2];
 
-          img.pixel[cont][contAux][0] = img.pixel[invertHeight][invertWidth][0];
-          img.pixel[cont][contAux][1] = img.pixel[invertHeight][invertWidth][1];
-          img.pixel[cont][contAux][2] = img.pixel[invertHeight][invertWidth][2];
-
-          img.pixel[invertHeight][invertWidth][0] = aux1.r;
-          img.pixel[invertHeight][invertWidth][1] = aux1.g;
-          img.pixel[invertHeight][invertWidth][2] = aux1.b;
+          img.pixel[referenceCont][referenceContAux][0] = pixelAux.r;
+          img.pixel[referenceCont][referenceContAux][1] = pixelAux.g;
+          img.pixel[referenceCont][referenceContAux][2] = pixelAux.b;
       }
   }
   return img;
 }
-void inverter_cores(Image img) {
+Image inverter_cores(Image img) {
     for (unsigned int cont = 0; cont < img.height; ++cont) {
         for (unsigned int contAux = 0; contAux < img.width; ++contAux) {
             img.pixel[cont][contAux][0] = 255 - img.pixel[cont][contAux][0];
@@ -155,6 +156,7 @@ void inverter_cores(Image img) {
             img.pixel[cont][contAux][2] = 255 - img.pixel[cont][contAux][2];
         }
     }
+    return img;
 }
 
 Image cortar_imagem(Image img) {
@@ -215,22 +217,21 @@ int main() {
             case 2: { // Filtro Sepia
                   img = filtro_sepia(img);
                   break;
-              }
+            }
             case 3: { // Blur
-                blur(img);
+                img = blur(img);
                 break;
             }
             case 4: { // Rotacao
                 img = rotacionar90direita(img);
-
                 break;
             }
             case 5: { // Espelhamento
-                img = espelhamento(img);
-                break;
+              img = espelhamento(img);
+              break;
             }
             case 6: { // Inversao de Cores
-                inverter_cores(img);
+                img =  inverter_cores(img);
                 break;
             }
             case 7: { // Cortar Imagem
@@ -238,12 +239,12 @@ int main() {
                 break;
             }
         }
-      }
+    }
+
     // print type of image
     printf("P3\n");
     // print width height and color of image
     printf("%u %u\n255\n", img.width, img.height);
-
     // print pixels of image
     showImage(img);
     return 0;
