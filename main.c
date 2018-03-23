@@ -196,9 +196,7 @@ int main() {
     char typeImg[4];
     scanf("%s", typeImg);
     // read width height and color of image
-    int max_color;
-    scanf("%u %u %d", &img.width, &img.height, &max_color);
-
+    scanf("%u %u", &img.width, &img.height);
     // read all pixels of image
     img = readImg(img);
 
@@ -235,8 +233,8 @@ int main() {
                 break;
             }
             case 7: { // Cortar Imagem
-                img = cortar_imagem(img);
                 break;
+                img = cortar_imagem(img);
             }
         }
     }
